@@ -9,18 +9,30 @@ using System.Text;
 
 public class PlayerMovement : MonoBehaviour
 {
-    public GameObject canvas;
+    // public GameObject canvas;
 
-
+    public CSVMaker csvmaker;
     public CharacterController controller;
 
     public float speed = 12f;
-    public String position;
-    List<String> positionList = new List<String>();
+    
+   // List<String> positionList = new List<String>();
+
+    private void Awake()
+    {
+        GameObject[] objs = GameObject.FindGameObjectsWithTag("Player");
+
+        if (objs.Length > 1)
+        {
+            Destroy(this.gameObject);
+        }
+
+        DontDestroyOnLoad(this.gameObject);
+    }
 
     private void Start()
     {
-        canvas.gameObject.SetActive(false);
+       
     }
     // Update is called once per frame
     void Update()
@@ -31,57 +43,12 @@ public class PlayerMovement : MonoBehaviour
         Vector3 move = transform.right * x + transform.forward * z;
 
         controller.Move(move * speed * Time.deltaTime);
+        CollectMovement();
 
     }
 
-    
-
-
-    private void OnTriggerEnter(Collider other)
+    public void CollectMovement()
     {
-        if (other.tag == "Player")
-        {
-            canvas.gameObject.SetActive(true);
-        }
-
+        csvmaker.position.Add(transform.position);
     }
-
-
-    //void DisableMyCanvas()
-    //{
-       
-    //}
-
-
-    //void makeString()
-    //{
-    //    string ToCSV()
-    //    {
-    //        String sb = new StringBuilder();
-    //        foreach (var frame in keyFrames)
-    //        {
-    //            sb.Append('\n').Append(frame.Time.ToString()).Append(',').Append(frame.Value.ToString());
-    //        }
-
-    //        return sb.ToString();
-    //    }
-    //}
-
 }
-
-// public class KeyFrame
-//{
-//    public int Value;
-//    public float Time;
-
-//    public KeyFrame() { }
-
-//    public KeyFrame(int value, float time)
-//    {
-//        Value = value;
-//        Time = time;
-//    }
-
-//    private List<KeyFrame> keyFrames = new List<KeyFrame>(10000);
-//}
-
