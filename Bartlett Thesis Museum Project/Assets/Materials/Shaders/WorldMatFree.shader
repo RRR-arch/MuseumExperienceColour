@@ -16,7 +16,7 @@ Shader "WorldMatFree"
 		_HeightDisplacement("Height Displacement", Range( 0 , 1)) = 0
 		_AO("AO", 2D) = "white" {}
 		_EdgeLength ( "Edge length", Range( 2, 50 ) ) = 15
-		_Tile("Tile", Range( 1 , 50)) = 1
+		_Tile("Tile", Range( 1 , 10)) = 1
 		[HideInInspector] _texcoord( "", 2D ) = "white" {}
 		[HideInInspector] __dirty( "", Int ) = 1
 	}
