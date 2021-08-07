@@ -4,23 +4,24 @@ using System.Text;
 using System.IO;
 using System;
 using UnityEngine;
+using System.Linq;
 
 public class CSVMaker : MonoBehaviour
 {
     public float sampleRate = 0.5f;
     private float sampleRateTimer;    
-    public List<Decimal> time = new List<Decimal>();
-    public List<Vector3> position = new List<Vector3>();
+   public List<string> playertime = new List<string>();
 
-
-    public List<List<string>> HitName;
+    public List<string> thisscene = new List<string>();
+    
+    public List<List<string>> HitName = new List<List<string>>();
     public List<string> LL = new List<string>();
     public List<string> LM = new List<string>();
     public List<string> MM = new List<string>();
     public List<string> RM = new List<string>();
     public List<string> RR = new List<string>();
 
-    public List<List<float>> HitDistance;
+    public List<List<float>> HitDistance = new List<List<float>>();
     public List<float> LMd = new List<float>();
     public List<float> MMd = new List<float>();
     public List<float> RMd = new List<float>();
@@ -28,14 +29,18 @@ public class CSVMaker : MonoBehaviour
     public List<float> LLd = new List<float>();
 
     public PlayerMovement playermovement;
+    List<Vector3> playerposition = new List<Vector3>();
+    
     public PlayerVision playervision;
+    public List<Vector3> playerfrontview = new List<Vector3>();
 
+    
 
     private void Start()
     {
         //  sampleRateTimer = sampleRate;
-        InvokeRepeating(nameof(CollectData), 0, 0.25f);
-        InvokeRepeating(nameof(WriteToFile), 2, 10);
+        InvokeRepeating("CollectData", 0.5f, 0.25f);  //InvokeRepeating(nameof(CollectData), 0.5f, 0.25f);
+        InvokeRepeating("WriteToFile", 0, 10);
  
     }
 
@@ -46,21 +51,44 @@ public class CSVMaker : MonoBehaviour
 
     void CollectData()
     {
+        //var t = Mathf.Round(Time.time);
+        var tfloat = Time.unscaledTimeAsDouble;
+       
+        string t = tfloat.ToString("f2");
+        Debug.Log(t);
+        playertime.Add(t);
+
+        var sce = playermovement.GetScene();
+        thisscene.Add(sce);
+
         List<string> names = new List<string>();
-        playermovement.CollectMovement();
-        playervision.CollectVision();
-        
-    }
-    void Update()
-    {
-        Timer();
-    }
+        var pos = playermovement.CollectMovement();
+        playerposition.Add(pos);
 
-    private void LateUpdate()
-    {
-        time.Add(((decimal)Time.time));
+        var view = playervision.CollectVision();
+        playerfrontview.Add(view);
+
+        var nam = playervision.GetAllWallNames();
+        HitName.AddRange(nam);
+
+        var dist = playervision.GetAllDistances();
+        HitDistance.AddRange(dist);
+
+
+
 
     }
+    //void TimeUpdate()
+    //{
+    //    var t = Mathf.Round(Time.deltaTime);
+    //    playertime.Add(t);
+    //}
+
+    //private void LateUpdate()
+    //{
+    //    time.Add(((decimal)Time.time));
+
+    //}
     private string getPath()
     {
 #if UNITY_EDITOR
@@ -75,24 +103,24 @@ public class CSVMaker : MonoBehaviour
 #endif
     }
 
-    void Timer()
-    {
-        if (sampleRate > 0)
-        {
-            sampleRate -= Time.deltaTime;
-        }
-        else
-        {
-            WriteToFile();
-            sampleRate = sampleRateTimer;
-        }
+    //void Timer()
+    //{
+    //    if (sampleRate > 0)
+    //    {
+    //        sampleRate -= Time.deltaTime;
+    //    }
+    //    else
+    //    {
+    //        WriteToFile();
+    //        sampleRate = sampleRateTimer;
+    //    }
 
-        //if (Time.deltaTime > (sampleRateTimer + sampleRate))
-        //{
-        //    WriteToFile();
-        //    sampleRateTimer = Time.deltaTime;
-        //}
-    }
+    //    //if (Time.deltaTime > (sampleRateTimer + sampleRate))
+    //    //{
+    //    //    WriteToFile();
+    //    //    sampleRateTimer = Time.deltaTime;
+    //    //}
+    //}
 
     void WriteToFile()
     {
@@ -101,35 +129,42 @@ public class CSVMaker : MonoBehaviour
 
         StreamWriter writer = new StreamWriter(filePath);
 
-        writer.WriteLine("Time, PositionX, PositionY, Left Ray, Left Centre Ray, Centre Ray, Right Centre Ray,Right Ray, L-Dist, LC-Dist, C-Dist, RC-Dist, R-Dist");
+        writer.WriteLine("Time, Scene, PositionX, PositionY, FrontViewX, FrontViewY, Left Ray, Left Centre Ray, Centre Ray, Right Centre Ray,Right Ray, L-Dist, LC-Dist, C-Dist, RC-Dist, R-Dist");
 
-        for (int i = 0; i < Mathf.Max(time.Count, position.Count, LL.Count, LM.Count, MM.Count, RM.Count, RR.Count); ++i)
+        for (int i = 0; i < Mathf.Max(playertime.Count, thisscene.Count, playerposition.Count); ++i)  //Mathf.Max( //  HitName[i].Count, HitDistance[i].Count
         {
-            if (i < time.Count) writer.Write(time[i]);
+            if (i < playertime.Count) writer.Write(playertime[i]);
             writer.Write(",");
-            if (i < position.Count) writer.Write(position[i].x);
+            if (i < thisscene.Count) writer.Write(thisscene[i]);
             writer.Write(",");
-            if (i < position.Count) writer.Write(position[i].z);
+            if (i < playerposition.Count) writer.Write(playerposition[i].x);
             writer.Write(",");
-            if (i < LL.Count) writer.Write(LL[i]);
+            if (i < playerposition.Count) writer.Write(playerposition[i].z);
             writer.Write(",");
-            if (i < LM.Count) writer.Write(LM[i]);
+            if (i < playerfrontview.Count) writer.Write(playerfrontview[i].x);
             writer.Write(",");
-            if (i < MM.Count) writer.Write(MM[i]);
-            writer.Write(",");
-            if (i < RM.Count) writer.Write(RM[i]);
-            writer.Write(",");
-            if (i < RR.Count) writer.Write(RR[i]);
-            writer.Write(",");
-            if (i < LLd.Count) writer.Write(LLd[i]);
-            writer.Write(",");
-            if (i < LMd.Count) writer.Write(LMd[i]);
-            writer.Write(",");
-            if (i < MMd.Count) writer.Write(MMd[i]);
-            writer.Write(",");
-            if (i < RMd.Count) writer.Write(RMd[i]);
-            writer.Write(",");
-            if (i < RRd.Count) writer.Write(RRd[i]);
+            if (i < playerfrontview.Count) writer.Write(playerfrontview[i].z);
+            //writer.Write(",");
+
+           //if (i < playertime.Count) writer.Write(HitName[i][0]);
+            //writer.Write(",");
+            //if (i < HitName[i].Count) writer.Write(HitName[i][1]);
+            //writer.Write(",");
+            //if (i < HitName[i].Count) writer.Write(HitName[i][2]);
+            //writer.Write(",");
+            //if (i < HitName[i].Count) writer.Write(HitName[i][3]);
+            //writer.Write(",");
+            //if (i < HitName[i].Count) writer.Write(HitName[i][4]);
+            //writer.Write(",");
+            //if (i < HitDistance[i].Count) writer.Write(HitDistance[i][0]);
+            //writer.Write(",");
+            //if (i < HitDistance[i].Count) writer.Write(HitDistance[i][1]);
+            //writer.Write(",");
+            //if (i < HitDistance[i].Count) writer.Write(HitDistance[i][2]);
+            //writer.Write(",");
+            //if (i < HitDistance[i].Count) writer.Write(HitDistance[i][3]);
+            //writer.Write(",");
+            //if (i < HitDistance[i].Count) writer.Write(HitDistance[i][4]);
             writer.Write(System.Environment.NewLine);
         }
 

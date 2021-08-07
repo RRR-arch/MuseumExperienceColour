@@ -5,13 +5,15 @@ using UnityEngine;
 public class PlayerVision : MonoBehaviour
 {
 
-    public CSVMaker csvmaker;
-    Vector3 centreVector;
+    //public CSVMaker csvmaker;
+    public Vector3 centreVector;
     Vector3 leftVector;
     Vector3 leftCentreVector;
     Vector3 rightCentreVector;
     Vector3 rightVector;
     public List<Vector3> allRays;
+    public List<List<string>> allWallNames = new List<List<string>>();
+    public List<List<float>> allDistances = new List<List<float>>();
 
     // Start is called before the first frame update
     void Start()
@@ -30,16 +32,27 @@ public class PlayerVision : MonoBehaviour
     // Update is called once per frame
     void FixedUpdate()
     {
-
-        //Vision();
+        List<string> names = new List<string>();
+        var positions = Vision(out names);
+        allWallNames.Add(names);
+        allDistances.Add(positions);
     }
 
-    public void CollectVision()
+    public Vector3 CollectVision()
     {
-        List<string> names = new List<string>();
-        Vision(out names);
-        csvmaker.HitName.Add(names); 
-        csvmaker.HitDistance.Add(Vision(out names));
+        return transform.forward;
+
+    }
+
+    
+    public List<List<string>> GetAllWallNames()
+    {
+        return allWallNames;
+    }
+
+    public List<List<float>> GetAllDistances()
+    {
+        return allDistances;
     }
 
     public List<float> Vision(out List<string> names)
@@ -47,7 +60,7 @@ public class PlayerVision : MonoBehaviour
         RaycastHit raycastHit;
 
         // Bit shift the index of the layer (8) to get a bit mask
-        int layerMask = 1 << 6;
+        int layerMask = 1 << 7;
 
         names = new List<string>();
         List<float> distances = new List<float>();
@@ -55,22 +68,39 @@ public class PlayerVision : MonoBehaviour
         for (int i = 0; i < allRays.Count; i++)
         {
 
-            if (Physics.Raycast(transform.position, transform.TransformDirection(allRays[i]), out raycastHit, Mathf.Infinity, layerMask))  //100 = depth 6 = layer
+            if (Physics.Raycast(transform.position, transform.TransformDirection(allRays[i]), out raycastHit, Mathf.Infinity, layerMask)) //100 = depth 6 = layer
             {
-                names.Add(raycastHit.collider.gameObject.name);
-                distances.Add(Vector3.Distance(transform.position, raycastHit.collider.gameObject.transform.position));
+                if (raycastHit.collider.gameObject.tag == "Blue Wall")
+                {
+                    Debug.Log("blue");
+                    names.Add("blue"); //raycastHit.collider.gameObject.name
+                    distances.Add(Vector3.Distance(transform.position, raycastHit.collider.gameObject.transform.position));
+
+                }
+                else 
+                {
+                    Debug.Log("white");
+                    names.Add("white");
+                    distances.Add(Vector3.Distance(transform.position, raycastHit.collider.gameObject.transform.position));
+
+                }
+                //else
+                //{
+                //    names.Add("Void");
+                //    distances.Add(0);
+                //}
 
                 //  csvmaker.LL.Add(raycastHit.collider.gameObject.name);  // Add "empty"
                 //  csvmaker.LLd.Add(Vector3.Distance(transform.position, raycastHit.collider.gameObject.transform.position));
             }
-            else
-            {
-                names.Add("missed");
-                distances.Add(0);
-            }
+            //else
+            //{
+            //    names.Add("missed");
+            //    distances.Add(-1);
+            //}
             
         }
-
+        CollectVision();
         return distances;
     }
     //// LEFT HAND VECTOR

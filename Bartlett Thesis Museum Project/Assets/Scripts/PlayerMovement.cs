@@ -4,19 +4,18 @@ using UnityEngine;
 using UnityEditor;
 using System;
 using System.Text;
+using UnityEngine.SceneManagement;
 
 
 
 public class PlayerMovement : MonoBehaviour
 {
-    // public GameObject canvas;
-
-    public CSVMaker csvmaker;
+    
+    //public CSVMaker csvmaker;
     public CharacterController controller;
-
     public float speed = 12f;
     
-   // List<String> positionList = new List<String>();
+   
 
     private void Awake()
     {
@@ -47,8 +46,18 @@ public class PlayerMovement : MonoBehaviour
 
     }
 
-    public void CollectMovement()
+    public Vector3 CollectMovement()
     {
-        csvmaker.position.Add(transform.position);
+      return transform.position;  
     }
+
+    public string GetScene()
+    {
+        return SceneManager.GetActiveScene().name;
+    }
+
+    //public void GetSceneName()
+    //{
+    //    SceneManager.
+    //}
 }
